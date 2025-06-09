@@ -1,9 +1,11 @@
 import glob, os
 
 def get_files_in_directory(str_extension):
+    """Get files in current directory with given extension."""
     return glob.glob(f"./*{str_extension}")
 
 def get_files_in_game_directory(root_dir, str_extension):
+    """Recursively get all files with given extension in root_dir."""
     file_list = []
     for dirpath, dirnames, filenames in os.walk(root_dir):
         for filename in filenames:
@@ -12,6 +14,7 @@ def get_files_in_game_directory(root_dir, str_extension):
     return file_list
 
 def process_ide_files(func_ide_list):
+    """Process IDE files and return a dictionary mapping IDs to object names."""
     id_name_map = {}
     for x in func_ide_list:
         with open(x, 'r') as ide:
@@ -29,6 +32,7 @@ def process_ide_files(func_ide_list):
     return id_name_map
 
 def is_inst_line(ipl_line):
+    """Check if line is an instance line."""
     if ipl_line.startswith("end"):
         return "inst end"
     elif not (ipl_line.startswith('#') or not ipl_line or ipl_line[0].isalpha()):
@@ -36,10 +40,12 @@ def is_inst_line(ipl_line):
     return False
 
 def get_id_name(func_line):
+    """Split line by commas and return as list."""
     if func_line.strip():
         return func_line.strip().split(',')
 
 def process_ipl_files(func_ipl_list, id_name_map):
+    """Process IPL files, replacing object IDs with names from IDE data."""
     for index, y in enumerate(func_ipl_list):
         temp_ipl_lines = []
         with open(y, 'r') as ipl:
@@ -47,13 +53,13 @@ def process_ipl_files(func_ipl_list, id_name_map):
                 line = line.rstrip()
                 if is_inst_line(line) == "inst end":
                     temp_ipl_lines.append("end")
-                    temp_ipl_lines.extend(ipl)
+                    temp_ipl_lines.extend(l.rstrip() for l in ipl)
                     break
                 elif is_inst_line(line):
                     ipl_line = get_id_name(line)
                     if ipl_line and ipl_line[0] in id_name_map:
                         ipl_line[1] = id_name_map[ipl_line[0]]
-                        line = ",".join(ipl_line)
+                        line = ", ".join(ipl_line)  # Add space after comma
                 temp_ipl_lines.append(line)
         # Overwrite the original file with updated content
         with open(y, 'w') as outfile:
